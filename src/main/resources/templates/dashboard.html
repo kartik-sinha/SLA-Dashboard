@@ -1,15 +1,22 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
+
 <head>
     <title>Google Maps</title>
-    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDwwxRlB8YZVdQJBnWr0m5HsLWaqd4Txgk&callback=initMap"></script>
+    <script
+            src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDwwxRlB8YZVdQJBnWr0m5HsLWaqd4Txgk&callback=initMap"></script>
     <script>
         let count = 0;
         let markers = [];
         let polylines = [];
         let infoWindows = [];
-        let val=0;
-        let currentInfoWindow=null;
+        let val = 0;
+        let currentInfoWindow = null;
+        let displayMarkers = [];
+        let flag = false;
+        let isInfoWindowOpen;
+        let flagdeviceId;
+        let device_lineid;
 
         async function fetchSchema() {
             const response1 = await fetch('/schema');
@@ -31,85 +38,67 @@
             }
         }
 
-        async function fetchRoute(deviceID, map, infoWindow) {
+        async function fetchRoute(deviceID, map) {
             const response = await fetch(`/devices/${deviceID}`);
             const data = await response.json();
-
             const RouteCoordinates = [];
 
             data.forEach(location => {
-                const svgMarker = {
-                    path: "M-1.547 12l6.563-6.609-1.406-1.406-5.156 5.203-2.063-2.109-1.406 1.406zM0 0q2.906 0 4.945 2.039t2.039 4.945q0 1.453-0.727 3.328t-1.758 3.516-2.039 3.070-1.711 2.273l-0.75 0.797q-0.281-0.328-0.75-0.867t-1.688-2.156-2.133-3.141-1.664-3.445-0.75-3.375q0-2.906 2.039-4.945t4.945-2.039z",
-                    fillColor: "aqua",
-                    fillOpacity: 0.0,
-                    strokeWeight: 0,
-                    rotation: 0,
-                    scale: 2,
-                    anchor: new google.maps.Point(0, 20),
-                };
-                var marker = new google.maps.Marker({
-                    position: { lat: location.latitude, lng: location.longitude },
-                    map: map,
-                    title: location.name,
-                    icon: svgMarker
-                });
-                markers.push(marker);
-                RouteCoordinates.push({ lat: location.latitude, lng: location.longitude });
 
-                const devicePath = new google.maps.Polyline({
-                    path: RouteCoordinates,
-                    geodesic: false,
-                    strokeColor: "#FF0000",
-                    strokeOpacity: 1.0,
-                    strokeWeight: 2,
-                });
+                 RouteCoordinates.push({ lat: location.latitude, lng: location.longitude });
+                 removePolylines();
 
-                devicePath.setMap(map);
-                polylines.push({ polyline: devicePath, infoWindow: infoWindow });
+                 const devicePath = new google.maps.Polyline({
+                     path: RouteCoordinates,
+                     geodesic: false,
+                     strokeColor: "#FF0000",
+                     strokeOpacity: 1.0,
+                     strokeWeight: 2,
+                 });
+
+                 devicePath.setMap(map);
+                 polylines.push({ polyline: devicePath });
+
             });
 
-            infoWindow.addListener("closeclick", function () {
-                markers.forEach(marker => marker.setMap(null));
-                markers = [];
-
-                polylines = polylines.filter(item => {
-                    if (item.infoWindow === infoWindow) {
-                        item.polyline.setMap(null);
-                        return false;
-                    }
-                    return true;
-                });
-            });
         }
 
         async function fetchLocations(map) {
+
             try {
-                const response = await fetch('/devices');
+                const response = await fetch(`/devices`);
+
                 const data = await response.json();
                 if (data.length === 0) {
                     console.error("No data received from /devices endpoint");
                     return;
                 }
+                displayMarkers.forEach(marker => marker.setMap(null));
 
                 data.forEach(location => {
-                    const svgMarker = {
-                        path: "M-1.547 12l6.563-6.609-1.406-1.406-5.156 5.203-2.063-2.109-1.406 1.406zM0 0q2.906 0 4.945 2.039t2.039 4.945q0 1.453-0.727 3.328t-1.758 3.516-2.039 3.070-1.711 2.273l-0.75 0.797q-0.281-0.328-0.75-0.867t-1.688-2.156-2.133-3.141-1.664-3.445-0.75-3.375q0-2.906 2.039-4.945t4.945-2.039z",
-                        fillColor: "aqua",
-                        fillOpacity: 0.6,
-                        strokeWeight: 0,
-                        rotation: 0,
-                        scale: 2,
-                        anchor: new google.maps.Point(0, 20),
-                    };
 
                     var marker = new google.maps.Marker({
                         position: { lat: location.latitude, lng: location.longitude },
                         map: map,
                         title: location.name,
-                        icon: svgMarker
+
                     });
 
-                    let id = location.device_Id;
+                    if(flag===true){
+                        const devicePath = new google.maps.Polyline({
+                         path:{ lat: location.latitude, lng: location.longitude } ,
+                         geodesic: false,
+                         strokeColor: "#FF0000",
+                         strokeOpacity: 1.0,
+                         strokeWeight: 2,
+                         });
+                        fetchRoute(device_lineid.replace("Device ", ""), map)
+
+                    }else {
+                        removePolylines();
+                    }
+
+                    displayMarkers.push(marker);
 
                     var infoWindow = new google.maps.InfoWindow({
                         content: `<div>
@@ -120,31 +109,45 @@
                                   </div>`
                     });
 
+                     marker.addListener('click', function () {
+                         if (flag === false ){
+                            flag=true;
+                            device_lineid = location.device_Id;
+
+                         }
+                         else if (flag === true) {
+                            flag=false;
+                            removePolylines();
+                         }
+
+                     });
+
+
                     infoWindows.push(infoWindow);
 
                     marker.addListener('click', function () {
-                        fetchRoute(id.replace("Device ", ""), map, infoWindow);
-                    });
-
-                    marker.addListener('click', function () {
-                        if(currentInfoWindow){
-                           currentInfoWindow.close();
-                           removePolylines();
+                        if (currentInfoWindow) {
+                            currentInfoWindow.close();
                         }
-                        currentInfoWindow=infoWindow;
+                        currentInfoWindow = infoWindow;
                         infoWindow.open(map, marker);
+
+                        let lp=document.getElementById('left-panel');
+                        lp.style.position='relative';
+                        lp.style.top='10px';
+                        lp.style.left='10px';
+                        lp.style.height='100px';
+                        lp.style.width='100px';
+                        lp.style.backgroundColor='black';
                     });
 
                     infoWindow.addListener('closeclick', function () {
                         markers.forEach(marker => marker.setMap(null));
                         markers = [];
 
-                        polylines = polylines.filter(item => {
-                           if (item.infoWindow === infoWindow) {
-                               item.polyline.setMap(null);
-
-                           }
-                        });
+                        removePolylines();
+                        clearInterval(code2);
+                        flag = false;
                         closeSidePanel();
                     });
                 });
@@ -231,11 +234,9 @@
                 }
             });
 
-            fetchLocations(map);
-
-            setInterval(() => {
+            mapcode = setInterval(() => {
                 fetchLocations(map);
-            }, 1000);
+            }, 2000);
         }
 
         async function openSidePanel(deviceId, lat, lon) {
@@ -301,12 +302,12 @@
             document.getElementById("side-panel").innerHTML = ``;
             document.getElementById("side-panel").style.width = "0";
         }
-        function removePolylines(){
+        function removePolylines() {
             markers.forEach(marker => marker.setMap(null));
             markers = [];
 
             polylines.filter(item => {
-              item.polyline.setMap(null);
+                item.polyline.setMap(null);
             });
         }
     </script>
@@ -355,6 +356,8 @@
 
 <div id="map" style="height: 559px; width: 96.8%;"></div>
 <div id="side-panel"></div>
+<div id="left-panel"></div>
 
 </body>
+
 </html>
