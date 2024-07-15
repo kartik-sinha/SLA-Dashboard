@@ -45,26 +45,25 @@
 
             data.forEach(location => {
 
-                 RouteCoordinates.push({ lat: location.latitude, lng: location.longitude });
-                 removePolylines();
+                RouteCoordinates.push({ lat: location.latitude, lng: location.longitude });
+                removePolylines();
 
-                 const devicePath = new google.maps.Polyline({
-                     path: RouteCoordinates,
-                     geodesic: false,
-                     strokeColor: "#FF0000",
-                     strokeOpacity: 1.0,
-                     strokeWeight: 2,
-                 });
+                const devicePath = new google.maps.Polyline({
+                    path: RouteCoordinates,
+                    geodesic: false,
+                    strokeColor: "#FF0000",
+                    strokeOpacity: 1.0,
+                    strokeWeight: 2,
+                });
 
-                 devicePath.setMap(map);
-                 polylines.push({ polyline: devicePath });
+                devicePath.setMap(map);
+                polylines.push({ polyline: devicePath });
 
             });
 
         }
 
         async function fetchLocations(map) {
-
             try {
                 const response = await fetch(`/devices`);
 
@@ -84,17 +83,17 @@
 
                     });
 
-                    if(flag===true){
+                    if (flag === true) {
                         const devicePath = new google.maps.Polyline({
-                         path:{ lat: location.latitude, lng: location.longitude } ,
-                         geodesic: false,
-                         strokeColor: "#FF0000",
-                         strokeOpacity: 1.0,
-                         strokeWeight: 2,
-                         });
+                            path: { lat: location.latitude, lng: location.longitude },
+                            geodesic: false,
+                            strokeColor: "#FF0000",
+                            strokeOpacity: 1.0,
+                            strokeWeight: 2,
+                        });
                         fetchRoute(device_lineid.replace("Device ", ""), map)
 
-                    }else {
+                    } else {
                         removePolylines();
                     }
 
@@ -109,18 +108,18 @@
                                   </div>`
                     });
 
-                     marker.addListener('click', function () {
-                         if (flag === false ){
-                            flag=true;
+                    marker.addListener('click', function () {
+                        if (flag === false) {
+                            flag = true;
                             device_lineid = location.device_Id;
 
-                         }
-                         else if (flag === true) {
-                            flag=false;
+                        }
+                        else if (flag === true) {
+                            flag = false;
                             removePolylines();
-                         }
+                        }
 
-                     });
+                    });
 
 
                     infoWindows.push(infoWindow);
@@ -132,13 +131,9 @@
                         currentInfoWindow = infoWindow;
                         infoWindow.open(map, marker);
 
-                        let lp=document.getElementById('left-panel');
-                        lp.style.position='relative';
-                        lp.style.top='10px';
-                        lp.style.left='10px';
-                        lp.style.height='100px';
-                        lp.style.width='100px';
-                        lp.style.backgroundColor='black';
+                        openFloatingPanel(location);
+
+
                     });
 
                     infoWindow.addListener('closeclick', function () {
@@ -239,6 +234,44 @@
             }, 2000);
         }
 
+        async function openFloatingPanel(location) {
+            let lp = document.getElementById('left-panel');
+            let ts = document.getElementById('top-section');
+            let bs = document.getElementById('bottom-section');
+
+            lp.style.display = 'block';
+            lp.style.width = '250px';
+            lp.style.height = '175px';
+
+            ts.innerHTML = `
+      <span>Device ID: ${location.device_Id}</span>
+      <a href="javascript:void(0)" id="cross1" class="closebtn" onclick="closeFloatingPanel()">&times;</a>
+    `;
+
+            bs.innerHTML = `
+      <div>
+        <h3> ${location.device_Id}</h3>
+        <p>Latitude: ${location.latitude}</p>
+        <p>Longitude: ${location.longitude}</p>
+        <button onclick="openSidePanel('${location.device_Id}', ${location.latitude}, ${location.longitude})">More Info</button>
+      </div>
+    `;
+        }
+
+        function closeFloatingPanel() {
+            let ts = document.getElementById("top-section");
+            let bs = document.getElementById('bottom-section');
+            let fp = document.getElementById('left-panel');
+
+
+            fp.style.display = 'none';
+            fp.style.width = '0px';
+            fp.style.height = '0px';
+
+            ts.innerHTML = ``;
+            bs.innerHTML = ``;
+        }
+
         async function openSidePanel(deviceId, lat, lon) {
             val++;
             count++;
@@ -298,6 +331,7 @@
             document.getElementById("side-panel").style.width = "0";
         }
 
+
         function closeSidePanelWithoutInterval() {
             document.getElementById("side-panel").innerHTML = ``;
             document.getElementById("side-panel").style.width = "0";
@@ -316,6 +350,55 @@
             margin: 0px;
         }
 
+        #left-panel {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            height: 175px;
+            width: 250px;
+            display: none;
+            border-radius: 8px;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+            background-color: #fff;
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+        }
+
+        #top-section {
+            background-color: #2c2c2e;
+            color: #ffcc00;
+            padding: 10px;
+            border-top-left-radius: 8px;
+            border-top-right-radius: 8px;
+            font-size: 16px;
+
+        }
+        #bottom-section {
+            background-color: #35383C;
+            color: #f0f0f0;
+            padding: 10px;
+            border-bottom-left-radius: 8px;
+            border-bottom-right-radius: 8px;
+            font-size: 14px;
+        }
+        h3{
+           margin-top:5px;
+        }
+        #bottom-section button {
+            background-color: #ffcc00;
+            border: none;
+            color: #2c2c2e;
+            padding: 5px 10px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 14px;
+            margin-top: 10px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        #bottom-section button:hover {
+            background-color: #e6b800;
+        }
         #side-panel {
             position: fixed;
             right: 0;
@@ -330,11 +413,9 @@
             border-left: 1px solid #ddd;
             z-index: 9999;
         }
-
         #side-panel p {
             margin-left: 7px 0;
         }
-
         .closebtn {
             position: absolute;
             top: 10px;
@@ -345,9 +426,14 @@
             position: relative;
             left: 0.2px;
         }
-
         #side-panel .closebtn:hover {
             color: red;
+        }
+        #cross1 {
+            position: absolute;
+            left: 215px;
+            top: -7px;
+            color: white;
         }
     </style>
 </head>
@@ -356,7 +442,10 @@
 
 <div id="map" style="height: 559px; width: 96.8%;"></div>
 <div id="side-panel"></div>
-<div id="left-panel"></div>
+<div id="left-panel" class="hidden">
+    <div id="top-section"></div>
+    <div id="bottom-section"></div>
+</div>
 
 </body>
 
