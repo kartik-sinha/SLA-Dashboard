@@ -16,14 +16,12 @@ public class NewProjectApplication {
 	public static void main(String[] args) {
 		SpringApplication.run(NewProjectApplication.class, args);
 
-
-
 		String url = "jdbc:mysql://localhost:3306/user_info";
 		String username = "root";
 		String password = "NeuralThumb@1409";
 
 		Connection con= DriverManager.getConnection(url, username, password);
-		String query= "insert into device_data values(?, ? , ?, ?);";
+		String query=  "insert into device_data values(?, ? , ?, ?);";
 		PreparedStatement pst=con.prepareStatement(query);
 		for(int i=16;;i++){
 
