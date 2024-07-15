@@ -7,7 +7,6 @@
             src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDwwxRlB8YZVdQJBnWr0m5HsLWaqd4Txgk&callback=initMap"></script>
     <script>
         let count = 0;
-        let markers = [];
         let polylines = [];
         let infoWindows = [];
         let val = 0;
@@ -60,18 +59,18 @@
                 polylines.push({ polyline: devicePath });
 
             });
-
         }
 
         async function fetchLocations(map) {
             try {
                 const response = await fetch(`/devices`);
-
                 const data = await response.json();
+
                 if (data.length === 0) {
                     console.error("No data received from /devices endpoint");
                     return;
                 }
+                console.log(data);
                 displayMarkers.forEach(marker => marker.setMap(null));
 
                 data.forEach(location => {
@@ -80,70 +79,30 @@
                         position: { lat: location.latitude, lng: location.longitude },
                         map: map,
                         title: location.name,
-
                     });
 
-                    if (flag === true) {
-                        const devicePath = new google.maps.Polyline({
-                            path: { lat: location.latitude, lng: location.longitude },
-                            geodesic: false,
-                            strokeColor: "#FF0000",
-                            strokeOpacity: 1.0,
-                            strokeWeight: 2,
-                        });
-                        fetchRoute(device_lineid.replace("Device ", ""), map)
-
-                    } else {
-                        removePolylines();
-                    }
+                    // if (flag === true) {
+                    //     fetchRoute(device_lineid.replace("Device ", ""), map)
+                    // } else {
+                    //     removePolylines();
+                    // }
 
                     displayMarkers.push(marker);
-
-                    var infoWindow = new google.maps.InfoWindow({
-                        content: `<div>
-                                  <h3>${location.device_Id}</h3>
-                                  <p>Latitude: ${location.latitude}</p>
-                                  <p>Longitude: ${location.longitude}</p>
-                                  <button onclick="openSidePanel('${location.device_Id}', '${infoWindow}', ${location.longitude})">More Info</button>
-                                  </div>`
-                    });
 
                     marker.addListener('click', function () {
                         if (flag === false) {
                             flag = true;
                             device_lineid = location.device_Id;
-
+                            fetchRoute(device_lineid.replace("Device ", ""), map)
                         }
                         else if (flag === true) {
                             flag = false;
                             removePolylines();
                         }
-
                     });
-
-
-                    infoWindows.push(infoWindow);
 
                     marker.addListener('click', function () {
-                        if (currentInfoWindow) {
-                            currentInfoWindow.close();
-                        }
-                        currentInfoWindow = infoWindow;
-                        infoWindow.open(map, marker);
-
                         openFloatingPanel(location);
-
-
-                    });
-
-                    infoWindow.addListener('closeclick', function () {
-                        markers.forEach(marker => marker.setMap(null));
-                        markers = [];
-
-                        removePolylines();
-                        clearInterval(code2);
-                        flag = false;
-                        closeSidePanel();
                     });
                 });
             } catch (error) {
@@ -244,25 +203,31 @@
             lp.style.height = '175px';
 
             ts.innerHTML = `
-      <span>Device ID: ${location.device_Id}</span>
-      <a href="javascript:void(0)" id="cross1" class="closebtn" onclick="closeFloatingPanel()">&times;</a>
-    `;
+                <span>Device ID: ${location.device_Id}</span>
+                <a href="javascript:void(0)" id="cross1" class="closebtn" onclick="closeFloatingPanel()">&times;</a>
+                `;
 
             bs.innerHTML = `
-      <div>
-        <h3> ${location.device_Id}</h3>
-        <p>Latitude: ${location.latitude}</p>
-        <p>Longitude: ${location.longitude}</p>
-        <button onclick="openSidePanel('${location.device_Id}', ${location.latitude}, ${location.longitude})">More Info</button>
-      </div>
-    `;
+                <div>
+                <h3> ${location.device_Id}</h3>
+                <p>Latitude: ${location.latitude}</p>
+                <p>Longitude: ${location.longitude}</p>
+                <button onclick="openSidePanel('${location.device_Id}', ${location.latitude}, ${location.longitude})">More Info</button>
+                </div>
+                `;
+
+            document.getElementById('cross1').addEventListener('click', function () {
+                removePolylines();
+                clearInterval(code2);
+                flag = false;
+                closeSidePanel();
+            });
         }
 
         function closeFloatingPanel() {
             let ts = document.getElementById("top-section");
             let bs = document.getElementById('bottom-section');
             let fp = document.getElementById('left-panel');
-
 
             fp.style.display = 'none';
             fp.style.width = '0px';
@@ -331,15 +296,12 @@
             document.getElementById("side-panel").style.width = "0";
         }
 
-
         function closeSidePanelWithoutInterval() {
             document.getElementById("side-panel").innerHTML = ``;
             document.getElementById("side-panel").style.width = "0";
         }
-        function removePolylines() {
-            markers.forEach(marker => marker.setMap(null));
-            markers = [];
 
+        function removePolylines() {
             polylines.filter(item => {
                 item.polyline.setMap(null);
             });
@@ -372,6 +334,7 @@
             font-size: 16px;
 
         }
+
         #bottom-section {
             background-color: #35383C;
             color: #f0f0f0;
@@ -380,9 +343,11 @@
             border-bottom-right-radius: 8px;
             font-size: 14px;
         }
-        h3{
-           margin-top:5px;
+
+        h3 {
+            margin-top: 5px;
         }
+
         #bottom-section button {
             background-color: #ffcc00;
             border: none;
@@ -396,9 +361,11 @@
             border-radius: 4px;
             cursor: pointer;
         }
+
         #bottom-section button:hover {
             background-color: #e6b800;
         }
+
         #side-panel {
             position: fixed;
             right: 0;
@@ -413,9 +380,11 @@
             border-left: 1px solid #ddd;
             z-index: 9999;
         }
+
         #side-panel p {
             margin-left: 7px 0;
         }
+
         .closebtn {
             position: absolute;
             top: 10px;
@@ -426,9 +395,11 @@
             position: relative;
             left: 0.2px;
         }
+
         #side-panel .closebtn:hover {
             color: red;
         }
+
         #cross1 {
             position: absolute;
             left: 215px;
