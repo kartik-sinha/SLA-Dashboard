@@ -5,12 +5,11 @@ let val = 0;
 let displayMarkers = [];
 let flag = false;
 let device_lineid;
-let fmarker=true;
+let highlightedMarker = null;
 
 async function fetchSchema() {
     const response1 = await fetch('/schema');
     const text1 = await response1.text();
-
     const list = JSON.parse(text1);
     return list;
 }
@@ -33,7 +32,6 @@ async function fetchRoute(deviceID, map) {
     const RouteCoordinates = [];
 
     data.forEach(location => {
-
         RouteCoordinates.push({ lat: location.latitude, lng: location.longitude });
         removePolylines();
 
@@ -47,10 +45,8 @@ async function fetchRoute(deviceID, map) {
 
         devicePath.setMap(map);
         polylines.push({ polyline: devicePath });
-
     });
 }
-let highlightedMarker = null;
 
 async function fetchLocations(map) {
     try {
@@ -62,44 +58,49 @@ async function fetchLocations(map) {
             return;
         }
         console.log(data);
+
         displayMarkers.forEach(marker => marker.setMap(null));
+        displayMarkers = [];
+
         const deviceIdInput = document.getElementById('device-id-input').value.trim().toLowerCase();
 
         data.forEach(location => {
-
-            var marker = new google.maps.Marker({
+            const marker = new google.maps.Marker({
                 position: { lat: location.latitude, lng: location.longitude },
                 map: map,
                 title: location.name,
-                label: location.device_Id.replace('Device ', ''),
+                label: location.device_Id.replace('Device ', '')
             });
 
             displayMarkers.push(marker);
 
-            if (deviceIdInput && location.device_Id.toLowerCase().includes(deviceIdInput) && fmarker) {
-                highlightedMarker=marker;
+            if (deviceIdInput && location.device_Id.toLowerCase().includes(deviceIdInput)) {
                 marker.setIcon('http://maps.google.com/mapfiles/ms/icons/purple-dot.png');
-                marker.setLabel(null);
+                marker.setLabel(null)
+                if (highlightedMarker && highlightedMarker !== marker) {
+                    highlightedMarker.setIcon(null);
+                    highlightedMarker.setLabel(highlightedMarker.getLabel()); // Reset the label
+                }
+                highlightedMarker = marker;
             }
 
             marker.addListener('click', function () {
-                if (highlightedMarker) {
-                    fmarker=false;
+                if (highlightedMarker && highlightedMarker !== marker) {
                     highlightedMarker.setIcon(null);
+                    highlightedMarker.setLabel(highlightedMarker.getLabel()); // Reset the label
                 }
+                marker.setIcon('http://maps.google.com/mapfiles/ms/icons/purple-dot.png');
+                highlightedMarker = marker;
 
                 if (flag === false) {
                     flag = true;
                     device_lineid = location.device_Id;
-                    fetchRoute(device_lineid.replace("Device ", ""), map)
-                }
-                else if (flag === true) {
+                    fetchRoute(device_lineid.replace("Device ", ""), map);
+                } else {
                     flag = false;
                     removePolylines();
                 }
-            });
 
-            marker.addListener('click', function () {
                 openFloatingPanel(location);
             });
         });
@@ -111,6 +112,7 @@ async function fetchLocations(map) {
 async function initMap() {
     const response = await fetch('/devices');
     const data = await response.json();
+
     if (data.length === 0) {
         console.error("No data received from /devices endpoint");
         return;
@@ -135,7 +137,7 @@ async function initMap() {
         const controlUI = document.createElement("button");
 
         controlUI.classList.add("ui-button");
-        controlUI.innerText = `${text}`;
+        controlUI.innerText = text;
         controlUI.addEventListener("click", () => {
             adjustMap(mode, amount);
         });
@@ -159,7 +161,6 @@ async function initMap() {
     infoWindow = new google.maps.InfoWindow();
 
     const locationButton = document.createElement("button");
-
     locationButton.textContent = "Pan to Current Location";
     locationButton.classList.add("custom-map-control-button");
     map.controls[google.maps.ControlPosition.TOP_CENTER].push(locationButton);
@@ -179,7 +180,7 @@ async function initMap() {
                 },
                 () => {
                     handleLocationError(true, infoWindow, map.getCenter());
-                },
+                }
             );
         } else {
             handleLocationError(false, infoWindow, map.getCenter());
@@ -192,27 +193,27 @@ async function initMap() {
 }
 
 async function openFloatingPanel(location) {
-    let lp = document.getElementById('left-panel');
-    let ts = document.getElementById('top-section');
-    let bs = document.getElementById('bottom-section');
+    const lp = document.getElementById('left-panel');
+    const ts = document.getElementById('top-section');
+    const bs = document.getElementById('bottom-section');
 
     lp.style.display = 'block';
     lp.style.width = '250px';
     lp.style.height = '175px';
 
     ts.innerHTML = `
-                <span>Device ID: ${location.device_Id}</span>
-                <a href="javascript:void(0)" id="cross1" class="closebtn" onclick="closeFloatingPanel()">&times;</a>
-                `;
+        <span>Device ID: ${location.device_Id}</span>
+        <a href="javascript:void(0)" id="cross1" class="closebtn" onclick="closeFloatingPanel()">&times;</a>
+    `;
 
     bs.innerHTML = `
-                <div>
-                <h3> ${location.device_Id}</h3>
-                <p>Latitude: ${location.latitude}</p>
-                <p>Longitude: ${location.longitude}</p>
-                <button onclick="openSidePanel('${location.device_Id}', ${location.latitude}, ${location.longitude})">More Info</button>
-                </div>
-                `;
+        <div>
+            <h3>${location.device_Id}</h3>
+            <p>Latitude: ${location.latitude}</p>
+            <p>Longitude: ${location.longitude}</p>
+            <button onclick="openSidePanel('${location.device_Id}', ${location.latitude}, ${location.longitude})">More Info</button>
+        </div>
+    `;
 
     document.getElementById('cross1').addEventListener('click', function () {
         removePolylines();
@@ -223,9 +224,9 @@ async function openFloatingPanel(location) {
 }
 
 function closeFloatingPanel() {
-    let ts = document.getElementById("top-section");
-    let bs = document.getElementById('bottom-section');
-    let fp = document.getElementById('left-panel');
+    const ts = document.getElementById("top-section");
+    const bs = document.getElementById('bottom-section');
+    const fp = document.getElementById('left-panel');
 
     fp.style.display = 'none';
     fp.style.width = '0px';
@@ -253,11 +254,11 @@ async function openSidePanel(deviceId, lat, lon) {
     const sP = document.getElementById("side-panel");
     sP.style.width = sidePanelWidth;
     sP.innerHTML = `
-                <a href="javascript:void(0)" id="cross" class="closebtn" onclick="closeSidePanel()">&times;</a>
-                <p>Device ID: ${deviceId}</p>`;
+        <a href="javascript:void(0)" id="cross" class="closebtn" onclick="closeSidePanel()">&times;</a>
+        <p>Device ID: ${deviceId}</p>`;
     const size = finalPoint - initialPoint;
     for (let i = 1; i <= size; i++) {
-        document.getElementById("side-panel").innerHTML += `<p>Humidity: <span id="h${i}"> </span> &nbsp;&nbsp;&nbsp;&nbsp; Temperature: <span id="t${i}"> </span></p>`;
+        sP.innerHTML += `<p>Humidity: <span id="h${i}"></span> &nbsp;&nbsp;&nbsp;&nbsp; Temperature: <span id="t${i}"></span></p>`;
     }
 
     const lis = await fetchSchema();
@@ -266,8 +267,8 @@ async function openSidePanel(deviceId, lat, lon) {
         fetch(`/devicedata/${deviceId}`)
             .then(response => response.json())
             .then(data => {
-                let hum = lis[2].toLowerCase();
-                let temp = lis[3].toLowerCase();
+                const hum = lis[2].toLowerCase();
+                const temp = lis[3].toLowerCase();
 
                 const latestData = data.reverse().slice(initialPoint, finalPoint);
 
@@ -300,8 +301,7 @@ function closeSidePanelWithoutInterval() {
 }
 
 function removePolylines() {
-    polylines.filter(item => {
+    polylines.forEach(item => {
         item.polyline.setMap(null);
     });
 }
-
