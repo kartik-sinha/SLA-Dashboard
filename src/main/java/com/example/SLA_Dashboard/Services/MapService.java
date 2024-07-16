@@ -16,7 +16,7 @@ public class MapService {
     @SneakyThrows
     public List<String>  getSchema() {
         Properties prop=new Properties();
-        FileInputStream finpt=new FileInputStream("src/main/java/com/example/New_Project/DBConfig.properties");
+        FileInputStream finpt=new FileInputStream("src/main/java/com/example/SLA_Dashboard/Configuration/DBConfig.properties");
         prop.load(finpt);
 
         List<String> schema=new ArrayList<>();
@@ -43,7 +43,7 @@ public class MapService {
     @SneakyThrows
     public Map<String, String> getProperties() {
         Properties prop=new Properties();
-        FileInputStream finpt=new FileInputStream("src/main/java/com/example/SLA_Dashboard/DASHBOARD.properties");
+        FileInputStream finpt=new FileInputStream("src/main/java/com/example/SLA_Dashboard/Configuration/DASHBOARD.properties");
         prop.load(finpt);
 
         Map<String, String> map=new HashMap<String, String>();
