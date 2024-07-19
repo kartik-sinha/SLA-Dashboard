@@ -6,6 +6,28 @@
     <link rel="stylesheet" th:href="@{/dashboardStyle.css}">
     <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDwwxRlB8YZVdQJBnWr0m5HsLWaqd4Txgk&callback=initMap"></script>
     <script th:src="@{/dashboardJS.js}"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.16.2/xlsx.full.min.js"></script>
+    <style>
+        #excel-button {
+    background-color: #5256E8;
+    border: none;
+    color: white;
+    padding: 10px 24px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 16px;
+    margin: 4px 2px;
+    cursor: pointer;
+    border-radius: 12px;
+    transition: background-color 0.3s ease;
+}
+
+#excel-button:hover {
+    background-color: #363AB3;
+}
+
+    </style>
 
 </head>
 
@@ -22,7 +44,9 @@
 </div>
 <form>
     <input type="text" placeholder="Enter Device ID" id="device-id-input">
+    <button class='submit-btn' type="submit" onsubmit="getSpecificLocation()">
 
+    </button>
 </form>
 
 </body>

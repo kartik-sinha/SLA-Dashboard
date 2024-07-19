@@ -6,6 +6,7 @@ let displayMarkers = [];
 let flag = false;
 let device_lineid;
 let highlightedMarker = null;
+let code; // added this line to declare the variable
 
 async function fetchSchema() {
     const response1 = await fetch('/schema');
@@ -76,7 +77,7 @@ async function fetchLocations(map) {
 
             if (deviceIdInput && location.device_Id.toLowerCase().includes(deviceIdInput)) {
                 marker.setIcon('http://maps.google.com/mapfiles/ms/icons/purple-dot.png');
-                marker.setLabel(null)
+                marker.setLabel(null);
                 if (highlightedMarker && highlightedMarker !== marker) {
                     highlightedMarker.setIcon(null);
                     highlightedMarker.setLabel(highlightedMarker.getLabel()); // Reset the label
@@ -187,7 +188,7 @@ async function initMap() {
         }
     });
 
-    mapcode = setInterval(() => {
+    setInterval(() => {
         fetchLocations(map);
     }, 2000);
 }
@@ -257,9 +258,12 @@ async function openSidePanel(deviceId, lat, lon) {
         <a href="javascript:void(0)" id="cross" class="closebtn" onclick="closeSidePanel()">&times;</a>
         <p>Device ID: ${deviceId}</p>`;
     const size = finalPoint - initialPoint;
+    console.log(size);
     for (let i = 1; i <= size; i++) {
         sP.innerHTML += `<p>Humidity: <span id="h${i}"></span> &nbsp;&nbsp;&nbsp;&nbsp; Temperature: <span id="t${i}"></span></p>`;
     }
+
+    sP.innerHTML += `<button id="excel-button" onclick="convertToExcel()">Convert to Excel</button>`; // Add the button here
 
     const lis = await fetchSchema();
 
@@ -304,4 +308,27 @@ function removePolylines() {
     polylines.forEach(item => {
         item.polyline.setMap(null);
     });
+}
+
+function getSpecificLocation() {
+    const data = document.getElementById('device-id-input').innerText;
+    fetch('/search', {
+        method: "POST",
+        body: JSON.stringify(data)
+    });
+}
+
+async function convertToExcel() {
+    const sidePanel = document.getElementById('side-panel');
+    const deviceId = sidePanel.querySelector('p').innerText.split(': ')[1];
+
+    const response = await fetch(`/devicedata/${deviceId}`);
+    const data = await response.json();
+
+    const wb = XLSX.utils.book_new();
+    const ws = XLSX.utils.json_to_sheet(data);
+    XLSX.utils.book_append_sheet(wb, ws, deviceId);
+
+    XLSX.writeFile(wb, `${deviceId}.xlsx`);
+
 }
