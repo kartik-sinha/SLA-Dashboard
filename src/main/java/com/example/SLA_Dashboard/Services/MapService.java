@@ -36,6 +36,8 @@ public class MapService {
             schema.add(rs.getMetaData().getColumnName(2));
             schema.add(rs.getMetaData().getColumnName(3));
             schema.add(rs.getMetaData().getColumnName(4));
+            schema.add(rs.getMetaData().getColumnName(5));
+            schema.add(rs.getMetaData().getColumnName(6));
 
         }
         return schema;

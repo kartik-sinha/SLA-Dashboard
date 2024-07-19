@@ -260,7 +260,8 @@ async function openSidePanel(deviceId, lat, lon) {
     const size = finalPoint - initialPoint;
     console.log(size);
     for (let i = 1; i <= size; i++) {
-        sP.innerHTML += `<p>Humidity: <span id="h${i}"></span> &nbsp;&nbsp;&nbsp;&nbsp; Temperature: <span id="t${i}"></span></p>`;
+        sP.innerHTML += `<p>Humidity: <span id="h${i}"></span> &nbsp;&nbsp;&nbsp;&nbsp; Temperature: <span id="t${i}"></span>
+                         &nbsp;&nbsp;&nbsp;&nbsp; Time: <span id="s${i}"></span> &nbsp;&nbsp;&nbsp;&nbsp; Date: <span id="d${i}"></span></p>`;
     }
 
     sP.innerHTML += `<button id="excel-button" onclick="convertToExcel()">Convert to Excel</button>`; // Add the button here
@@ -273,19 +274,27 @@ async function openSidePanel(deviceId, lat, lon) {
             .then(data => {
                 const hum = lis[2].toLowerCase();
                 const temp = lis[3].toLowerCase();
+                const time = lis[4].toLowerCase();
+                const date=  lis[5].toLowerCase();
 
                 const latestData = data.reverse().slice(initialPoint, finalPoint);
 
                 for (let i = 1; i <= size; i++) {
                     const hElement = document.getElementById(`h${i}`);
                     const tElement = document.getElementById(`t${i}`);
+                    const sElement = document.getElementById(`s${i}`);
+                    const dElement = document.getElementById(`d${i}`);
 
                     if (latestData[i - 1]) {
                         hElement.innerText = latestData[i - 1][hum];
                         tElement.innerText = latestData[i - 1][temp];
+                        sElement.innerText = latestData[i - 1][time];
+                        dElement.innerText = latestData[i - 1][date];
                     } else {
                         hElement.innerText = '';
                         tElement.innerText = '';
+                        sElement.innerText = '';
+                        dElement.innerText = '';
                     }
                 }
             })
@@ -330,5 +339,4 @@ async function convertToExcel() {
     XLSX.utils.book_append_sheet(wb, ws, deviceId);
 
     XLSX.writeFile(wb, `${deviceId}.xlsx`);
-
 }
