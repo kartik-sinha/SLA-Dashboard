@@ -4,29 +4,67 @@
 <head>
     <title>Google Maps</title>
     <link rel="stylesheet" th:href="@{/dashboardStyle.css}">
-    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDwwxRlB8YZVdQJBnWr0m5HsLWaqd4Txgk&callback=initMap"></script>
+    <script
+            src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDwwxRlB8YZVdQJBnWr0m5HsLWaqd4Txgk&callback=initMap"></script>
     <script th:src="@{/dashboardJS.js}"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.16.2/xlsx.full.min.js"></script>
     <style>
         #excel-button {
-    background-color: #5256E8;
-    border: none;
-    color: white;
-    padding: 10px 24px;
-    text-align: center;
-    text-decoration: none;
-    display: inline-block;
-    font-size: 16px;
-    margin: 4px 2px;
-    cursor: pointer;
-    border-radius: 12px;
-    transition: background-color 0.3s ease;
-}
+            background-color: #5256E8;
+            border: none;
+            color: white;
+            padding: 10px 24px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 16px;
+            margin: 4px 2px;
+            cursor: pointer;
+            border-radius: 12px;
+            transition: background-color 0.3s ease;
+        }
 
-#excel-button:hover {
-    background-color: #363AB3;
-}
+        #excel-button:hover {
+            background-color: #363AB3;
+        }
 
+        #search-container {
+            position: absolute;
+            top: 5px;
+            right: 90px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 10px;
+        }
+
+        #search-input {
+            padding: 9.5px;
+            font-size: 16px;
+            border-radius: 4px 0 0 4px;
+            border: 1px solid #ccc;
+            width: 225px;
+            box-shadow: 1px 1px 3px rgba(0, 0, 0, 0.1);
+            outline: none;
+        }
+
+        #submit-button {
+            background-color: #5256E8;
+            border: none;
+            color: white;
+            padding: 9.5px 18px;
+            text-align: center;
+            font-size: 16px;
+            cursor: pointer;
+            border-radius: 0 4px 4px 0;
+            transition: background-color 0.3s ease;
+            outline: none;
+            box-shadow: 1px 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        #submit-button:hover {
+            background-color: #363AB3;
+        }
     </style>
 
 </head>
@@ -42,12 +80,13 @@
         <div class="long"></div>
     </div>
 </div>
-<form>
-    <input type="text" placeholder="Enter Device ID" id="device-id-input">
-    <button class='submit-btn' type="submit" onsubmit="getSpecificLocation()">
+<div id="search-container">
+    <input type="text" id="search-input" placeholder="Enter id">
+    <button id="submit-button" onclick="highlightMarker()">Search</button>
+</div>
 
-    </button>
-</form>
+
+
 
 </body>
 

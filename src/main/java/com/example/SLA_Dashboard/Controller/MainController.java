@@ -6,6 +6,8 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
+
 import com.example.SLA_Dashboard.Repository.*;
 import com.example.SLA_Dashboard.Model.*;
 import com.example.SLA_Dashboard.Services.*;
@@ -75,5 +77,9 @@ public class MainController {
     @ResponseBody
     public Map<String, String> getProperties() {return mapService.getProperties(); }
 
-
+    @GetMapping("/deviceids")
+    @ResponseBody
+    public List<String> getAllDeviceIds() {
+        return deviceRepository.findAllDeviceIds().stream().map(s->s.substring(7)).collect(Collectors.toList());
+    }
 }

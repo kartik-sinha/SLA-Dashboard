@@ -3,10 +3,11 @@ let polylines = [];
 let infoWindows = [];
 let val = 0;
 let displayMarkers = [];
+let markerIds= [];
 let flag = false;
 let device_lineid;
 let highlightedMarker = null;
-let code; // added this line to declare the variable
+let code;
 
 async function fetchSchema() {
     const response1 = await fetch('/schema');
@@ -58,12 +59,9 @@ async function fetchLocations(map) {
             console.error("No data received from /devices endpoint");
             return;
         }
-        console.log(data);
 
         displayMarkers.forEach(marker => marker.setMap(null));
         displayMarkers = [];
-
-        const deviceIdInput = document.getElementById('device-id-input').value.trim().toLowerCase();
 
         data.forEach(location => {
             const marker = new google.maps.Marker({
@@ -72,27 +70,11 @@ async function fetchLocations(map) {
                 title: location.name,
                 label: location.device_Id.replace('Device ', '')
             });
+            console.log(marker.getLabel())
 
             displayMarkers.push(marker);
 
-            if (deviceIdInput && location.device_Id.toLowerCase().includes(deviceIdInput)) {
-                marker.setIcon('http://maps.google.com/mapfiles/ms/icons/purple-dot.png');
-                marker.setLabel(null);
-                if (highlightedMarker && highlightedMarker !== marker) {
-                    highlightedMarker.setIcon(null);
-                    highlightedMarker.setLabel(highlightedMarker.getLabel()); // Reset the label
-                }
-                highlightedMarker = marker;
-            }
-
             marker.addListener('click', function () {
-                if (highlightedMarker && highlightedMarker !== marker) {
-                    highlightedMarker.setIcon(null);
-                    highlightedMarker.setLabel(highlightedMarker.getLabel()); // Reset the label
-                }
-                marker.setIcon('http://maps.google.com/mapfiles/ms/icons/purple-dot.png');
-                highlightedMarker = marker;
-
                 if (flag === false) {
                     flag = true;
                     device_lineid = location.device_Id;
@@ -258,7 +240,7 @@ async function openSidePanel(deviceId, lat, lon) {
         <a href="javascript:void(0)" id="cross" class="closebtn" onclick="closeSidePanel()">&times;</a>
         <p>Device ID: ${deviceId}</p>`;
     const size = finalPoint - initialPoint;
-    console.log(size);
+
     for (let i = 1; i <= size; i++) {
         sP.innerHTML += `<p>Humidity: <span id="h${i}"></span> &nbsp;&nbsp;&nbsp;&nbsp; Temperature: <span id="t${i}"></span>
                          &nbsp;&nbsp;&nbsp;&nbsp; Time: <span id="s${i}"></span> &nbsp;&nbsp;&nbsp;&nbsp; Date: <span id="d${i}"></span></p>`;
@@ -319,12 +301,20 @@ function removePolylines() {
     });
 }
 
-function getSpecificLocation() {
-    const data = document.getElementById('device-id-input').innerText;
-    fetch('/search', {
-        method: "POST",
-        body: JSON.stringify(data)
-    });
+async function highlightMarker() {
+    const searchValue = document.getElementById('search-input').value;
+    const marker = displayMarkers.find(m => m.getLabel() === searchValue);
+
+    if (marker) {
+        if (highlightedMarker) {
+            highlightedMarker.setAnimation(null);
+        }
+        highlightedMarker = marker;
+        marker.setAnimation(google.maps.Animation.BOUNCE);
+
+    } else {
+        alert('Marker not found');
+    }
 }
 
 async function convertToExcel() {
