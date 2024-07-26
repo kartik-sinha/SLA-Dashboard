@@ -11,7 +11,9 @@ import lombok.*;
 @Builder
 @Entity
 public class User {
+
     @Id
+    private String username;
     private String phone_number;
     private String email;
     private String name;

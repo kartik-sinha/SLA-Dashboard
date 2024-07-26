@@ -7,16 +7,16 @@ import com.example.SLA_Dashboard.Model.User;
 import com.example.SLA_Dashboard.Repository.UserRepository;
 
 @Service
-public class Login_Service {
+public class SignUpService {
 
     @Autowired
     private UserRepository userRepository;
 
-    public String verifyUser(User user) {
-        User foundUser = userRepository.findByUsername(user.getUsername());
-        if (foundUser == null || !foundUser.getPassword().equals(user.getPassword())) {
-            return "incorrect_password";
+    public String addUser(User user) {
+        if (userRepository.existsByUsername(user.getUsername())) {
+            return "username_taken";
         }
-        return "redirect:/dashboard";
+        userRepository.save(user);
+        return "user_added";
     }
 }

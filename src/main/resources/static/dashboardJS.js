@@ -70,7 +70,6 @@ async function fetchLocations(map) {
                 title: location.name,
                 label: location.device_Id.replace('Device ', '')
             });
-            console.log(marker.getLabel())
 
             displayMarkers.push(marker);
 
@@ -172,6 +171,11 @@ async function initMap() {
 
     setInterval(() => {
         fetchLocations(map);
+        if(flag===true){
+           console.log(device_lineid.replace("Device ", ""));
+           fetchRoute(device_lineid.replace("Device ", ""), map);
+        }
+
     }, 2000);
 }
 
