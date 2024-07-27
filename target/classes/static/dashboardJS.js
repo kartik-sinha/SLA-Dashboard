@@ -242,7 +242,12 @@ async function openSidePanel(deviceId, lat, lon) {
     sP.style.width = sidePanelWidth;
     sP.innerHTML = `
         <a href="javascript:void(0)" id="cross" class="closebtn" onclick="closeSidePanel()">&times;</a>
-        <p>Device ID: ${deviceId}</p>`;
+            <p>Device ID: ${deviceId}</p>
+            <label for="from-date">From:</label>
+            <input type="date" id="from-date">
+            <label for="to-date">To:</label>
+            <input type="date" id="to-date">
+            <button id="excel-button" onclick="convertToExcel()">Convert to Excel</button>`;
     const size = finalPoint - initialPoint;
 
     for (let i = 1; i <= size; i++) {
