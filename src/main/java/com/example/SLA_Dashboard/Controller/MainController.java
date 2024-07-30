@@ -1,5 +1,7 @@
 package com.example.SLA_Dashboard.Controller;
 
+import com.example.SLA_Dashboard.Exceptions.NoDevicePresentException;
+import com.example.SLA_Dashboard.Exceptions.UserNotFoundException;
 import com.example.SLA_Dashboard.Model.Device_Data;
 import com.example.SLA_Dashboard.Model.Devices;
 import com.example.SLA_Dashboard.Model.Location;
@@ -62,7 +64,7 @@ public class MainController {
     }
 
     @PostMapping("/dashboard")
-    public String redirectPage(@ModelAttribute User user, Model model) {
+    public String redirectPage(@ModelAttribute User user, Model model) throws UserNotFoundException {
         String result = loginService.verifyUser(user);
         if ("incorrect_password".equals(result)) {
             model.addAttribute("error", "Incorrect password. Please try again.");
@@ -74,6 +76,10 @@ public class MainController {
     @GetMapping("/devices")
     @ResponseBody
     public List<Devices> getAllLocations() {
+        List<Devices> list=deviceRepository.findAll();
+        if(list==null){
+            throw new NoDevicePresentException();
+        }
         return deviceRepository.findAll();
     }
 
